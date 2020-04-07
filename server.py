@@ -30,7 +30,11 @@ def ids_with_path(path):
     matches = es.search(index=es_index,
                         _source='_id',
                         q='path:' + json.dumps(path))
-    return [m['_id'] for m in matches['hits']['hits']]
+    try:
+        return [m['_id'] for m in matches['hits']['hits']]
+    except KeyError:
+        print("No hits:", matches)
+        return []
 
 def paths_at_location(offset, limit):
     search = es.search(index=es_index,
@@ -167,9 +171,10 @@ def ping_handler():
 
 @app.errorhandler(400)
 def bad_request(e):
+    import traceback
     return json.dumps({
         'status': 'fail',
-        'error': ['bad request'],
+        'error': [traceback.format_exc()],
         'method': '',
         'result': []
     }), 400
